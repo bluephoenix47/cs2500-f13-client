@@ -1,6 +1,6 @@
 #!/bin/sh
 mkdir cs2500-client
-cp *.rkt icon.png cs2500-client
+cp *.rkt server-cert.pem icon.png cs2500-client
 raco link cs2500-client
 raco pack --collect --at-plt ++setup cs2500-client cs2500-client.plt cs2500-client
 raco link -r cs2500-client
