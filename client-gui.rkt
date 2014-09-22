@@ -707,8 +707,7 @@
     bm2))
 
 (define handin-icon
-  (scale-by-half (car (#%info-lookup 'drracket-tool-icons
-                       (lambda () '("icon.png"))))))
+  (scale-by-half (car (in-this-collection (#%info-lookup 'drracket-tool-icons)))))
 
 (define (editors->string editors)
   (let* ([base (make-object editor-stream-out-bytes-base%)]
