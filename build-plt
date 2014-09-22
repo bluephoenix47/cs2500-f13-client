@@ -1,6 +1,9 @@
 #!/bin/sh
+mkdir cs2500-client
+cp *.rkt icon.png cs2500-client
 raco link cs2500-client
 raco pack --collect --at-plt ++setup cs2500-client cs2500-client.plt cs2500-client
 raco link -r cs2500-client
+rm -rf cs2500--client
 # Modify the command below to upload the PLT file somewhere
 # rsync -avz cs2500-client.plt wilbowma@login.ccs.neu.edu:/course/cs2500sp14/.www/cs2500-client.plt
