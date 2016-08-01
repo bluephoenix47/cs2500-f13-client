@@ -1,7 +1,17 @@
 #lang racket/base
 
-(require racket/class racket/port racket/gui/base framework browser/external
-         "info.rkt" "client-gui.rkt" "this-collection.rkt")
+(require racket/class
+         racket/port
+         racket/gui/base
+         framework
+         browser/external
+         setup/getinfo
+         racket/runtime-path
+         "client-gui.rkt" "this-collection.rkt")
+
+(define-runtime-path this-dir ".")
+
+(define #%info-lookup (get-info/full this-dir))
 
 (define handin-name (#%info-lookup 'name))
 (define web-address (#%info-lookup 'web-address

@@ -1,6 +1,12 @@
 #lang racket/base
 (require racket/file racket/port net/url setup/plt-installer racket/gui/base
-         framework "info.rkt" "this-collection.rkt")
+         framework
+         setup/getinfo
+         racket/runtime-path
+         "this-collection.rkt")
+
+(define-runtime-path this-dir ".")
+(define #%info-lookup (get-info/full this-dir))
 
 (define name        (#%info-lookup 'name))
 (define web-address (#%info-lookup 'web-address))

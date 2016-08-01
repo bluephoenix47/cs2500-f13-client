@@ -1,4 +1,4 @@
-#lang setup/infotab
+#lang info
 
 ;; Modify these definitions to enable & customize the tool.
 ;; (Detailed instructions are in the handin-server collection's docs.)
@@ -25,9 +25,9 @@
 (define web-address "http://www.ccs.neu.edu/course/cs2500")
 
 ;; Auto-updater section (see handin-server/doc.txt for details)
-;(define enable-auto-update #t) ; enable auto-update?
-;(define version-filename "handin-version")
-;(define package-filename "handin.plt")
+(define enable-auto-update #f) ; enable auto-update?
+(define version-filename "handin-version")
+(define package-filename "handin.plt")
 
 ;; Multi-file submission section (see handin-server/doc.txt for details)
 ;(define enable-multifile-handin #t) ; enable multi-file?

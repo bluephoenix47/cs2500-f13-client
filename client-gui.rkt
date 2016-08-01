@@ -2,7 +2,12 @@
 
 (require racket/class racket/unit racket/file racket/gui/base net/sendurl
          mrlib/switchable-button mrlib/bitmap-label drracket/tool framework
-         "info.rkt" "client.rkt" "this-collection.rkt")
+         setup/getinfo
+         racket/runtime-path
+         "client.rkt" "this-collection.rkt")
+
+(define-runtime-path this-dir ".")
+(define #%info-lookup (get-info/full this-dir))
 
 (provide tool@)
 

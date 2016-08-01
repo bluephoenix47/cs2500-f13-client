@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require (for-syntax racket/base))
+(require racket/path
+         (for-syntax racket/base))
 
 (define-syntax (this-name-stx stx)
   (let* ([p (syntax-source stx)]
@@ -18,13 +19,13 @@
                   (make-exn:fail
                    "*** Error: this collection must be a top-level collection"
                    (exn-continuation-marks e))))])
-      (collection-path name))
+      (collection-file-path "info.rkt" name))
     (datum->syntax stx name stx)))
 
 (provide this-collection-name)
 (define this-collection-name this-name-stx)
 
-(define this-collection-path (collection-path this-collection-name))
+(define this-collection-path (path-only (collection-file-path "info.rkt" this-collection-name)))
 (provide in-this-collection)
 (define (in-this-collection . paths)
   (apply build-path this-collection-path paths))
