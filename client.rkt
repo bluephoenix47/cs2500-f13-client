@@ -12,7 +12,7 @@
          submit-info-change
          retrieve-user-info)
 
-(define-struct handin (r w))
+(struct handin (r w))
 
 ;; errors to the user: no need for a "foo: " prefix
 (define (error* fmt . args)
@@ -61,7 +61,7 @@
       (unless (eq? s 'ver1)
         (error 'handin-connect "bad protocol from server: ~e" s)))
     ;; Return connection:
-    (make-handin r w)))
+    (handin r w)))
 
 (define (handin-disconnect h)
   (write+flush (handin-w h) 'bye)

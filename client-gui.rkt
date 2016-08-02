@@ -42,11 +42,17 @@
   (#%info-lookup 'enable-multifile-handin (lambda () #f)))
 
 (define preference-key (make-my-key 'submit:username))
+(define preference-key2 (make-my-key 'submit:username2))
 
 (preferences:set-default preference-key "" string?)
+(preferences:set-default preference-key2 "" string?)
 (define (remembered-user)
   (preferences:get preference-key))
 (define (remember-user user)
+  (preferences:set preference-key user))
+(define (remembered-user2)
+  (preferences:get preference-key2))
+(define (remember-user2 user)
   (preferences:set preference-key user))
 
 (define remembered-assignment (make-parameter #f))
@@ -125,14 +131,26 @@
            [stretchable-width #t]))
     (define username
       (new text-field%
-           [label "Username:"]
+           [label "Username 1:"]
            [init-value (remembered-user)]
            [parent this]
            [callback (lambda (t e) (activate-ok))]
            [stretchable-width #t]))
     (define passwd
       (new cached-passwd%
-           [label "Password:"]
+           [label "Password 1:"]
+           [parent this]
+           [callback (lambda (t e) (activate-ok))]
+           [stretchable-width #t]))
+    (define username2
+      (new text-field%
+           [label "Username 2:"]
+           [parent this]
+           [callback (lambda (t e) (activate-ok))]
+           [stretchable-width #t]))
+    (define passwd2
+      (new cached-passwd%
+           [label "Password 2:"]
            [parent this]
            [callback (lambda (t e) (activate-ok))]
            [stretchable-width #t]))
@@ -169,8 +187,10 @@
       (define final-message "Handin successful.")
       (submit-assignment
        connection
-       (send username get-value)
-       (send passwd get-value)
+       (list (send username get-value)
+             (send username2 get-value))
+       (list (send passwd get-value)
+             (send passwd2 get-value))
        (send assignment get-string (send assignment get-selection))
        content
        ;; on-commit
@@ -192,8 +212,10 @@
     (define (retrieve-file)
       (let ([buf (retrieve-assignment
                   connection
-                  (send username get-value)
-                  (send passwd get-value)
+                  (list (send username get-value)
+                        (send username2 get-value))
+                  (list (send passwd get-value)
+                        (send passwd2 get-value))
                   (send assignment get-string (send assignment get-selection)))])
         (queue-callback
          (lambda ()
@@ -217,6 +239,7 @@
                 (thread
                  (lambda ()
                    (remember-user (send username get-value))
+                   (remember-user2 (send username2 get-value))
                    (with-handlers ([void (lambda (exn)
                                            (report-error "Handin failed." exn))])
                      (if (send retrieve? get-value)
@@ -227,7 +250,9 @@
     (define (activate-ok)
       (send ok enable (and ok-can-enable?
                            (not (string=? "" (send username get-value)))
-                           (not (string=? "" (send passwd get-value))))))
+                           (not (string=? "" (send passwd get-value)))
+                           (not (string=? "" (send username2 get-value)))
+                           (not (string=? "" (send passwd2 get-value))))))
 
     (define cancel
       (new button%
@@ -264,7 +289,7 @@
                          (set! continue-abort? #t) (send d show #f))))))
 
     (define interface-widgets
-      (list ok username passwd assignment retrieve?))
+      (list ok username passwd username2 passwd2 assignment retrieve?))
     (define (disable-interface)
       (for ([x (in-list interface-widgets)]) (send x enable #f)))
     (define (enable-interface)
@@ -336,6 +361,8 @@
 
     (send (cond [(string=? "" (send username get-value)) username]
                 [(string=? "" (send passwd get-value)) passwd]
+                [(string=? "" (send username2 get-value)) username2]
+                [(string=? "" (send passwd2 get-value)) passwd2]
                 [else ok])
           focus)
     (send ok enable #f) ; disable after focus possibly sent to it
