@@ -186,12 +186,15 @@
 
     (define (submit-file)
       (define final-message "Handin successful.")
+      (define user2 (send username2 get-value))
+      (define pwd2 (send passwd2 get-value))
+      (define one-users? (and (eq? user2 "") (eq? pwd2 "")))
       (submit-assignment
        connection
-       (list (send username get-value)
-             (send username2 get-value))
-       (list (send passwd get-value)
-             (send passwd2 get-value))
+       (cons (send username get-value)
+             (if one-users? null (list user2)))
+       (cons (send passwd get-value)
+             (if one-users? null (list pwd2)))
        (send assignment get-string (send assignment get-selection))
        content
        ;; on-commit
