@@ -53,7 +53,7 @@
 (define (remembered-user2)
   (preferences:get preference-key2))
 (define (remember-user2 user)
-  (preferences:set preference-key user))
+  (preferences:set preference-key2 user))
 
 (define remembered-assignment (make-parameter #f))
 
@@ -145,6 +145,7 @@
     (define username2
       (new text-field%
            [label "Username 2:"]
+           [init-value (remembered-user2)]
            [parent this]
            [callback (lambda (t e) (activate-ok))]
            [stretchable-width #t]))
