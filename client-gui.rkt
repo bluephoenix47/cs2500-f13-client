@@ -206,7 +206,7 @@
       (define final-message "Handin successful.")
       (define user2 (send username2 get-value))
       (define pwd2 (send passwd2 get-value))
-      (define one-users? (and (eq? user2 "") (eq? pwd2 "")))
+      (define one-users? (and (equal? user2 "") (equal? pwd2 "")))
       (submit-assignment
        connection
        (cons (send username get-value)
@@ -232,12 +232,15 @@
          (set! committing? #f)
          (done-interface))))
     (define (retrieve-file)
+      (define user2 (send username2 get-value))
+      (define pwd2 (send passwd2 get-value))
+      (define one-users? (and (equal? user2 "") (equal? pwd2 "")))
       (let ([buf (retrieve-assignment
                   connection
-                  (list (send username get-value)
-                        (send username2 get-value))
-                  (list (send passwd get-value)
-                        (send passwd2 get-value))
+                  (cons (send username get-value)
+                        (if one-users? null (list user2)))
+                  (cons (send passwd get-value)
+                        (if one-users? null (list pwd2)))
                   (send assignment get-string (send assignment get-selection)))])
         (queue-callback
          (lambda ()
@@ -273,8 +276,10 @@
       (send ok enable (and ok-can-enable?
                            (not (string=? "" (send username get-value)))
                            (not (string=? "" (send passwd get-value)))
-                           (not (string=? "" (send username2 get-value)))
-                           (not (string=? "" (send passwd2 get-value))))))
+                           (or (and (string=? "" (send username2 get-value))
+                                    (string=? "" (send passwd2 get-value)))
+                               (and (not (string=? "" (send username2 get-value)))
+                                    (not (string=? "" (send passwd2 get-value))))))))
 
     (define cancel
       (new button%
