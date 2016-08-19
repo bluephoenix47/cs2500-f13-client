@@ -4,6 +4,7 @@
          mrlib/switchable-button mrlib/bitmap-label drracket/tool framework
          setup/getinfo
          racket/runtime-path
+         racket/contract/base
          "client.rkt" "this-collection.rkt")
 
 (define-runtime-path this-dir ".")
@@ -13,6 +14,22 @@
 
 (define uninstalled? #f)
 
+(define preference-lab-section (make-my-key 'submit:lab))
+
+(define section-count (#%info-lookup 'section-count (λ () #f)))
+(preferences:set-default preference-lab-section 1 (integer-in 1 section-count))
+(define (remembered-lab-section)
+  (preferences:get preference-lab-section))
+(define (remember-lab-section section)
+  (when server:port
+    (let ([m (regexp-match #rx"^([^:]+):([0-9]+)$" server:port)])
+      (unless m
+        (error 'handin-client
+               "Bad configuration ~s, expecting \"server:port\""
+               server:port))
+      (set! server (format (cadr m) section))))
+  (preferences:set preference-lab-section section))
+
 (define server:port (#%info-lookup 'server:port (lambda () #f)))
 (define-values (server port-no)
   (if server:port
@@ -21,7 +38,7 @@
         (error 'handin-client
                "Bad configuration ~s, expecting \"server:port\""
                server:port))
-      (values (cadr m) (string->number (caddr m))))
+      (values (format (cadr m) (remembered-lab-section)) (string->number (caddr m))))
     (values #f #f)))
 
 (define handin-name   (#%info-lookup 'name))
@@ -31,10 +48,11 @@
 (define password-keep-minutes
   (#%info-lookup 'password-keep-minutes (lambda () #f)))
 
-(define handin-dialog-name (string-append handin-name " Handin"))
-(define button-label/h     (string-append handin-name " Handin"))
-(define button-label/r     (string-append handin-name " Retrieve"))
-(define manage-dialog-name (string-append handin-name " Handin Account"))
+(define handin-dialog-name      (string-append handin-name " Handin"))
+(define button-label/h          (string-append handin-name " Handin"))
+(define button-label/r          (string-append handin-name " Retrieve"))
+(define lab-section-dialog-name (string-append handin-name " Lab Section"))
+(define manage-dialog-name      (string-append handin-name " Handin Account"))
 
 (define updater?
   (#%info-lookup 'enable-auto-update (lambda () #f)))
@@ -188,7 +206,7 @@
       (define final-message "Handin successful.")
       (define user2 (send username2 get-value))
       (define pwd2 (send passwd2 get-value))
-      (define one-users? (and (eq? user2 "") (eq? pwd2 "")))
+      (define one-users? (and (equal? user2 "") (equal? pwd2 "")))
       (submit-assignment
        connection
        (cons (send username get-value)
@@ -214,12 +232,15 @@
          (set! committing? #f)
          (done-interface))))
     (define (retrieve-file)
+      (define user2 (send username2 get-value))
+      (define pwd2 (send passwd2 get-value))
+      (define one-users? (and (equal? user2 "") (equal? pwd2 "")))
       (let ([buf (retrieve-assignment
                   connection
-                  (list (send username get-value)
-                        (send username2 get-value))
-                  (list (send passwd get-value)
-                        (send passwd2 get-value))
+                  (cons (send username get-value)
+                        (if one-users? null (list user2)))
+                  (cons (send passwd get-value)
+                        (if one-users? null (list pwd2)))
                   (send assignment get-string (send assignment get-selection)))])
         (queue-callback
          (lambda ()
@@ -255,8 +276,10 @@
       (send ok enable (and ok-can-enable?
                            (not (string=? "" (send username get-value)))
                            (not (string=? "" (send passwd get-value)))
-                           (not (string=? "" (send username2 get-value)))
-                           (not (string=? "" (send passwd2 get-value))))))
+                           (or (and (string=? "" (send username2 get-value))
+                                    (string=? "" (send passwd2 get-value)))
+                               (and (not (string=? "" (send username2 get-value)))
+                                    (not (string=? "" (send passwd2 get-value))))))))
 
     (define cancel
       (new button%
@@ -373,6 +396,45 @@
     (send assignment enable #f)
 
     (center)
+    (show #t)))
+
+(provide manage-lab-section-dialog%)
+(define manage-lab-section-dialog%
+  (class dialog% (init [parent #f])
+    (inherit show is-shown? center)
+    (super-new [label lab-section-dialog-name]
+               [alignment '(center center)]
+               [parent parent])
+
+    (new message%
+         [parent this]
+         [label "Select Lab Section:"])
+
+    (define sections
+      (new choice%
+           [parent this]
+           [label #f]
+           [choices (for/list ([i (in-range section-count)])
+                      (format "Section ~a" (add1 i)))]))
+
+    (send sections set-selection (sub1 (remembered-lab-section)))
+
+    (define bottom
+      (new horizontal-panel% [parent this]))
+
+    (new button%
+         [label "OK"]
+         [parent bottom]
+         [callback (λ (b e)
+                     (remember-lab-section (add1 (send sections get-selection)))
+                     (show #f))])
+
+    (new button%
+         [label "Cancel"]
+         [parent bottom]
+         [callback (λ (b e)
+                     (show #f))])
+    
     (show #t)))
 
 (provide manage-handin-dialog%)
@@ -787,6 +849,13 @@
         (define/override (file-menu:between-open-and-revert file-menu)
           ;; super adds a separator, add this and another sep after that
           (super file-menu:between-open-and-revert file-menu)
+
+          (new menu-item%
+               [label (format "Select ~a Lab Section" handin-name)]
+               [parent file-menu]
+               [callback (λ (m e)
+                           (new manage-lab-section-dialog% [parent this]))])
+          
           (new menu-item%
                [label (format "Manage ~a Handin Account..." handin-name)]
                [parent file-menu]
