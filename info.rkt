@@ -39,3 +39,9 @@
 ;(define password-keep-minutes 5) ; client remembers entered password 5 mins
 
 (define requires '(("mred") ("openssl")))
+
+(define deps '("base"
+               "gui-lib"
+               "net-lib"
+               "drracket"
+               "drracket-plugin-lib"))
