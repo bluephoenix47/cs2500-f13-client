@@ -469,8 +469,11 @@
                  (send status set-label
                        (if new? "Creating user..." "Updating server..."))
                  (if new?
-                   (run submit-addition username add-passwd add-user-fields)
-                   (run submit-info-change username old-passwd new-passwd
+                   (run submit-addition (list username) (list add-passwd) add-user-fields)
+                   (run submit-info-change
+                        (list username)
+                        (list old-passwd)
+                        (list new-passwd)
                         change-user-fields)))
                (send status set-label "Success.")
                (send cancel set-label "Close")))))))
@@ -490,7 +493,9 @@
                         (let loop ([x fields])
                           (if (list? x) (map loop x) (send x get-value)))))
                (send status set-label "Retrieving information...")
-               (let ([vals (run retrieve-user-info username old-passwd)])
+               (let ([vals (run retrieve-user-info
+                                (list username)
+                                (list old-passwd))])
                  (send status set-label "Success, you can now edit fields.")
                  (send tabs enable #t)
                  (for ([f change-user-fields]
