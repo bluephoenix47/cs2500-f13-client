@@ -10,7 +10,7 @@ First, ensure any older semesters are removed:
 
 Then, install the new semester:
 
-```raco pkg install github://github.com/bluephoenix47/cs2500-client/f14```
+```raco pkg install github://github.com/nuprl/cs2500-client/accel-f2016```
 
 Make sure not to use the master branch, as it doesn't contain the
 server's certificate. Instead, use the semester specific branch, such as
